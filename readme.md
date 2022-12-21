@@ -5,3 +5,6 @@ dotnet new -help ( Help for Dotnet New Command )
 dotnet watch run ( for Hot Reload and open swagger url )
 
 dotnet new gitignore ( To Add GitIgnore File )
+
+git config --global user.email "useremail"
+git config --global user.ane "username
