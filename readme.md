@@ -42,3 +42,26 @@ AutoMapper
 dotnet add package AutoMapper.Extensions.Microsoft.DependencyInjection
 
 AutoMapper Profile Configuration
+
+Add EF Core Package
+dotnet add package Microsoft.EntityFrameworkCore
+
+Add SQL Server Package
+dotnet add package Microsoft.EntityFrameworkCore.SQLServer
+
+Add EF Design Package to Enable EF Command
+dotnet add package Microsoft.EntityFrameworkCore.Design
+
+Install Dotnet EF Tool
+dotnet tool install --global dotnet-ef
+
+DataContext : DbContext, DbSet
+
+DB Connection String
+
+Add DataContext in Service
+
+Migration
+dotnet ef migrations add InitialCreateText
+
+dotnet ef database update

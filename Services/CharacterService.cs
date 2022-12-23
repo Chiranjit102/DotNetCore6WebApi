@@ -9,23 +9,32 @@ namespace DotNetCoreWebApi.Services
 {
     public class CharacterService : ICharacterService
     {
+        /*
         private static List<Character> characters = new List<Character>{
             new Character(),
             new Character{ID=1, Name="SAM"}
         };
-        private readonly IMapper _mapper;
+        **/
 
-        public CharacterService(IMapper mapper)
+        private readonly IMapper _mapper;
+        private readonly DataContext _context ;
+
+        public CharacterService(IMapper mapper, DataContext context)
         {
             _mapper = mapper;
+            _context = context;
         }
+
+        
+
         public async Task<ServiceResponse<List<GetCharacterDTO>>> AddNewCharacter(AddCharacterDTO newCharacter)
         {
             var serviceResponse = new ServiceResponse<List<GetCharacterDTO>>(); 
             var newchar = _mapper.Map<Character>(newCharacter);
-            newchar.ID = characters.Max(c => c.ID) + 1;
-            characters.Add(newchar);
-            serviceResponse.Data = characters.Select(c => _mapper.Map<GetCharacterDTO>(c)).ToList();
+            //newchar.ID = characters.Max(c => c.ID) + 1;
+            _context.Characters.Add(newchar);
+            await _context.SaveChangesAsync();
+            serviceResponse.Data = await _context.Characters.Select(c => _mapper.Map<GetCharacterDTO>(c)).ToListAsync();
             return serviceResponse;
         }
 
@@ -33,13 +42,14 @@ namespace DotNetCoreWebApi.Services
         {
             var serviceResponse = new ServiceResponse<List<GetCharacterDTO>>();
             try{
-            var character = characters.FirstOrDefault(c => c.ID == Id);
+            var character = await _context.Characters.FirstOrDefaultAsync(c => c.ID == Id);
             if(character is null)
                 throw new Exception($"Character with Id: {Id} not found !");
             
-            characters.Remove(character);
+            _context.Characters.Remove(character);
+            await _context.SaveChangesAsync();
 
-            serviceResponse.Data = characters.Select(c => _mapper.Map<GetCharacterDTO>(c)).ToList();
+            serviceResponse.Data = await _context.Characters.Select(c => _mapper.Map<GetCharacterDTO>(c)).ToListAsync();
             }
             catch(Exception ex){
                 serviceResponse.IsSuccess = false;
@@ -52,14 +62,15 @@ namespace DotNetCoreWebApi.Services
         public async Task<ServiceResponse<List<GetCharacterDTO>>> GetAllCharacters()
         {
             var serviceResponse = new ServiceResponse<List<GetCharacterDTO>>(); 
-            serviceResponse.Data = characters.Select(c => _mapper.Map<GetCharacterDTO>(c)).ToList();
+            var dbCharacters = await _context.Characters.ToListAsync();
+            serviceResponse.Data = dbCharacters.Select(c => _mapper.Map<GetCharacterDTO>(c)).ToList();
             return serviceResponse;
         }
 
         public async Task<ServiceResponse<GetCharacterDTO>> GetCharcterById(int Id)
         {
             var serviceResponse = new ServiceResponse<GetCharacterDTO>(); 
-            var character =  characters.FirstOrDefault(c => c.ID == Id);
+            var character = await _context.Characters.FirstOrDefaultAsync(c => c.ID == Id);
             serviceResponse.Data = _mapper.Map<GetCharacterDTO>(character);
             
             return serviceResponse;
@@ -69,7 +80,7 @@ namespace DotNetCoreWebApi.Services
         {
             var serviceResponse = new ServiceResponse<GetCharacterDTO>();
             try{
-            var character = characters.FirstOrDefault(c => c.ID == updateCharacter.ID);
+            var character = await _context.Characters.FirstOrDefaultAsync(c => c.ID == updateCharacter.ID);
             if(character is null)
                 throw new Exception($"Character with Id: {updateCharacter.ID} not found !");
             character.Name = updateCharacter.Name;
@@ -78,7 +89,7 @@ namespace DotNetCoreWebApi.Services
             character.Intelligence = updateCharacter.Intelligence;
             character.HitPoints = updateCharacter.HitPoints;
             character.Class = updateCharacter.Class;
-
+            await _context.SaveChangesAsync();
             serviceResponse.Data = _mapper.Map<GetCharacterDTO>(character);
             }
             catch(Exception ex){
